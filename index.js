@@ -15,7 +15,7 @@ server.get('/', (req, res) => {
 server.post('/api/users', async (req, res, next) => {
     try {
         const { name, bio } = req.body
-        if (!name|| !bio) {
+        if (!name || !bio) {
             const provideBioAndName = new Error("Please provide name and bio for the user.")
             provideBioAndName.httpStatusCode = 400
             throw provideBioAndName
@@ -23,8 +23,10 @@ server.post('/api/users', async (req, res, next) => {
         const newUser = await insert({ name, bio })
         return res.json(newUser)
     } catch (e) {
-        console.log(e)
-        next(new Error('There was an error while saving the user to the database'))
+        if (e.httpStatusCode !== 400) {
+            next(new Error('There was an error while saving the user to the database'))
+        }
+        next(e)
     }
 })
 
