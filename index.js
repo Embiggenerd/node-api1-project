@@ -1,5 +1,5 @@
 const express = require('express'); // import the express package
-const { insert, find, findById } = require('./data/db')
+const { insert, find, findById, remove, update } = require('./data/db')
 const server = express(); // creates the server
 const bodyParser = require('body-parser')
 
@@ -21,7 +21,7 @@ server.post('/api/users', async (req, res, next) => {
             throw provideBioAndName
         }
         const newUser = await insert({ name, bio })
-        return res.json(newUser)
+        return res.status(201).json(newUser)
     } catch (e) {
         if (e.httpStatusCode !== 400) {
             next(new Error('There was an error while saving the user to the database'))
@@ -56,6 +56,44 @@ server.get('/api/users/:id', async (req, res, next) => {
     }
 })
 
+server.delete('/api/users/:id', async (req, res, next) => {
+    try {
+        const user = await remove(req.params.id)
+        if (!user) {
+            const noSuchUser = new Error('The user with the specified ID does not exist.')
+            noSuchUser.httpStatusCode = 404
+            throw noSuchUser
+        }
+        return res.json(user)
+    } catch (e) {
+        if (e.httpStatusCode !== 404) {
+            return next('The user could not be removed')
+        }
+        next(e)
+    }
+})
+
+server.put('/api/users/:id', async (req, res, next) => {
+    try {
+        const { name, bio } = req.body
+        if (!name || !bio) {
+            const provideBioAndName = new Error("Please provide name and bio for the user.")
+            provideBioAndName.httpStatusCode = 400
+            throw provideBioAndName
+        }
+
+        const oldUser = await findById(req.params.id)
+        console.log('oldUser', oldUser)
+        const user = await update(req.param.id, {name, bio})
+        console.log('putUser', user)
+        const newUser = await findById(req.params.id)
+        console.log('newUser', newUser)
+        return res.json(user)
+
+    } catch (e) {
+        next(new Error('The user information could not be modified.'))
+    }
+})
 
 server.use((err, req, res, next) => {
     res.status(err.httpStatusCode || 500).json({
