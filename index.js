@@ -1,5 +1,5 @@
 const express = require('express'); // import the express package
-const { insert } = require('./data/db')
+const { insert, find } = require('./data/db')
 const server = express(); // creates the server
 const bodyParser = require('body-parser')
 
@@ -30,6 +30,14 @@ server.post('/api/users', async (req, res, next) => {
     }
 })
 
+server.get('/api/users', async (req, res, next) => {
+    try {
+        const users = await find()
+        return res.json(users)
+    } catch(e){
+        throw new Error('The users information could not be retrieved.')
+    }
+})
 
 
 server.use((err, req, res, next) => {
