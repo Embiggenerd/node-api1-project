@@ -1,5 +1,5 @@
 const express = require('express'); // import the express package
-const { insert, find } = require('./data/db')
+const { insert, find, findById } = require('./data/db')
 const server = express(); // creates the server
 const bodyParser = require('body-parser')
 
@@ -34,8 +34,25 @@ server.get('/api/users', async (req, res, next) => {
     try {
         const users = await find()
         return res.json(users)
-    } catch(e){
+    } catch (e) {
         throw new Error('The users information could not be retrieved.')
+    }
+})
+
+server.get('/api/users/:id', async (req, res, next) => {
+    try {
+        const user = await findById(req.params.id)
+        if (!user) {
+            const noSuchUser = new Error('The user with the specified ID does not exist.')
+            noSuchUser.httpStatusCode = 404
+            throw noSuchUser
+        }
+        return res.json(user)
+    } catch (e) {
+        if (e.httpStatusCode !== 404) {
+            return next('The user information could not be retrieved.')
+        }
+        next(e)
     }
 })
 
