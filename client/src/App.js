@@ -15,7 +15,6 @@ function App() {
   useEffect(() => {
     const getUsers = async () => {
       const { data } = await axios('/api/users')
-      console.log('getUsers', data)
       setUsers({
         ...users,
         userList: data
@@ -28,15 +27,16 @@ function App() {
     event.preventDefault()
     try {
       const { data } = await axios.post('/api/users', { name: users.name, bio: users.bio })
-      const newUser = await axios.get('/api/users/'+data.id)
+      console.dir('newpost'.data)
       setUsers({
-        ...users,
-        userList: [...users.userList, newUser.data]
+        name: "",
+        bio: "",
+        userList: [...users.userList, data]
       })
 
+      // setUsers({ ...users, name: "", bio: "" })
     } catch (e) {
-      // setError(e.response.data.errorMessage)
-      console.dir(error)
+      console.dir(e)
       setTimeout(setError(""), 3000)
     }
   }
