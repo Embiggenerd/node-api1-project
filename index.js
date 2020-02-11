@@ -20,7 +20,9 @@ server.post('/api/users', async (req, res, next) => {
             provideBioAndName.httpStatusCode = 400
             throw provideBioAndName
         }
-        const newUser = await insert({ name, bio })
+        const {id} = await insert({ name, bio })
+        const newUser = await findById(id)
+        console.log(id, newUser)
         return res.status(201).json(newUser)
     } catch (e) {
         if (e.httpStatusCode !== 400) {
@@ -82,15 +84,20 @@ server.put('/api/users/:id', async (req, res, next) => {
             throw provideBioAndName
         }
 
-        const oldUser = await findById(req.params.id)
-        console.log('oldUser', oldUser)
-        const user = await update(req.param.id, {name, bio})
-        console.log('putUser', user)
+        const user = await update(req.params.id, { name, bio })
+        if (!user) {
+            const noSuchUser = new Error('The user with the specified ID does not exist.')
+            noSuchUser.httpStatusCode = 404
+            throw noSuchUser
+        } 
+
         const newUser = await findById(req.params.id)
-        console.log('newUser', newUser)
-        return res.json(user)
+        return res.json(newUser)
 
     } catch (e) {
+        if(!e.httpStatusCode) {
+
+        }
         next(new Error('The user information could not be modified.'))
     }
 })
